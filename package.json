@@ -1,0 +1,26 @@
+{
+  "name": "dispatch",
+  "version": "1.0.0",
+  "description": "Autonomous AI Project Orchestration System",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "node src/index.js --now",
+    "setup": "node scripts/setup.js",
+    "project:add": "node scripts/setup.js --add-project",
+    "project:status": "node scripts/setup.js --status",
+    "project:pause": "node scripts/setup.js --pause",
+    "project:resume": "node scripts/setup.js --resume"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.7",
+    "node-cron": "^3.0.3",
+    "openai": "^4.77.0",
+    "simple-git": "^3.27.0"
+  }
+}
