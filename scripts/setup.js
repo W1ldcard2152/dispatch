@@ -112,8 +112,9 @@ async function verifyConfig() {
   dotenvConfig();
 
   const checks = [
-    ['GROK_API_KEY', process.env.GROK_API_KEY],
-    ['SLACK_WEBHOOK_URL', process.env.SLACK_WEBHOOK_URL],
+    ['XAI_API_KEY', process.env.XAI_API_KEY],
+    ['SLACK_BOT_TOKEN', process.env.SLACK_BOT_TOKEN],
+    ['SLACK_APP_TOKEN', process.env.SLACK_APP_TOKEN],
   ];
 
   let allGood = true;
@@ -131,21 +132,25 @@ async function testSlack() {
   const { config: dotenvConfig } = await import('dotenv');
   dotenvConfig();
 
-  const url = process.env.SLACK_WEBHOOK_URL;
-  if (!url || url.includes('your_')) {
-    console.log('Slack webhook not configured, skipping test');
+  const token = process.env.SLACK_BOT_TOKEN;
+  if (!token || token.includes('your-')) {
+    console.log('Slack bot token not configured, skipping test');
     return;
   }
 
   try {
-    const res = await fetch(url, {
+    const res = await fetch('https://slack.com/api/auth.test', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: ':robot_face: Dispatch setup test - webhook is working!' }),
+      headers: { Authorization: `Bearer ${token}` },
     });
-    console.log(res.ok ? '  Slack webhook: OK' : `  Slack webhook: FAILED (${res.status})`);
+    const data = await res.json();
+    if (data.ok) {
+      console.log(`  Slack bot: OK (connected as "${data.user}" in "${data.team}")`);
+    } else {
+      console.log(`  Slack bot: FAILED (${data.error})`);
+    }
   } catch (err) {
-    console.log(`  Slack webhook: ERROR (${err.message})`);
+    console.log(`  Slack bot: ERROR (${err.message})`);
   }
 }
 

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dispatch — Admin</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>⚡ Dispatch</h1>
+      <span class="subtitle">Project Orchestration</span>
+    </div>
+    <div class="header-right">
+      <span id="status-grok" class="badge">Grok</span>
+      <span id="status-slack" class="badge">Slack</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Project List Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <h2>Projects</h2>
+        <button id="btn-new" class="btn btn-sm btn-primary" title="New Project">+ New</button>
+      </div>
+      <ul id="project-list"></ul>
+    </aside>
+
+    <!-- Project Editor -->
+    <section id="editor">
+      <div id="editor-empty">
+        <p>Select a project or create a new one.</p>
+      </div>
+
+      <form id="project-form" class="hidden">
+        <div class="form-header">
+          <h2 id="form-title">Edit Project</h2>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" id="btn-delete" class="btn btn-danger">Delete</button>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="f-projectId">Project ID</label>
+            <input type="text" id="f-projectId" name="projectId" placeholder="my-project" required pattern="[a-z0-9\-]+" title="Lowercase letters, numbers, hyphens only">
+            <small>Lowercase, hyphens only. Cannot change after creation.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="f-name">Display Name</label>
+            <input type="text" id="f-name" name="name" placeholder="My Awesome Project" required>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="f-repoPath">Repository Path</label>
+            <div class="input-with-btn">
+              <input type="text" id="f-repoPath" name="repoPath" placeholder="C:\Users\...\Programming\my-project" required>
+              <button type="button" id="btn-browse" class="btn btn-sm btn-secondary" title="Browse for folder">Browse</button>
+            </div>
+            <small>Absolute path to the git repo on this machine.</small>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="f-currentGoal">Current Goal</label>
+            <textarea id="f-currentGoal" name="currentGoal" rows="3" placeholder="What should Grok and Claude be working toward?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="f-status">Status</label>
+            <select id="f-status" name="status">
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="waiting_input">Waiting for Input</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="f-gregAvailability">Greg's Availability</label>
+            <input type="text" id="f-gregAvailability" name="gregAvailability" placeholder="Business hours weekdays">
+          </div>
+
+          <div class="form-group">
+            <label for="f-timeBudget">Time Budget (minutes)</label>
+            <input type="number" id="f-timeBudget" name="timeBudget" min="0" step="5" placeholder="60">
+            <small>0 = single cycle (no time limit). Otherwise Grok+Claude keep working until time runs out.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="f-maxIterations">Max Iterations</label>
+            <input type="number" id="f-maxIterations" name="maxIterations" min="1" max="10" placeholder="3">
+            <small>After approving a solution, branch it and try a different approach. 1 = no iteration.</small>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="f-techStack">Tech Stack</label>
+            <input type="text" id="f-techStack" name="techStack" placeholder="Node.js, React, PostgreSQL">
+            <small>Comma-separated list of technologies.</small>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="f-preferences">Preferences / Instructions</label>
+            <textarea id="f-preferences" name="preferences" rows="3" placeholder="Use ES modules, follow existing patterns, always handle errors..."></textarea>
+            <small>Comma-separated. These guide both Grok's planning and Claude's execution.</small>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="f-gregDirection">Greg's Current Direction</label>
+            <textarea id="f-gregDirection" name="gregDirection" rows="2" placeholder="(Optional) Override direction for next cycle"></textarea>
+            <small>If set, Grok will see this as your latest instruction. Cleared after Grok reads it.</small>
+          </div>
+        </div>
+
+        <!-- History (read-only) -->
+        <details id="history-section" class="hidden">
+          <summary>Completed Tasks (<span id="completed-count">0</span>)</summary>
+          <div id="completed-list" class="history-list"></div>
+        </details>
+
+        <details id="blockers-section" class="hidden">
+          <summary>Blockers (<span id="blocker-count">0</span>)</summary>
+          <div id="blocker-list" class="history-list"></div>
+        </details>
+      </form>
+    </section>
+  </main>
+
+  <!-- Folder browser modal -->
+  <div id="browse-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Select Folder</h3>
+        <button type="button" id="browse-close" class="btn btn-sm btn-secondary">Cancel</button>
+      </div>
+      <div id="browse-path" class="browse-path"></div>
+      <div class="browse-actions">
+        <button type="button" id="browse-up" class="btn btn-sm btn-secondary">⬆ Parent</button>
+        <button type="button" id="browse-select" class="btn btn-sm btn-primary">Select This Folder</button>
+      </div>
+      <div id="browse-git-badge" class="badge connected hidden" style="margin: 0.5rem 0;">Git repo</div>
+      <ul id="browse-list" class="browse-list"></ul>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

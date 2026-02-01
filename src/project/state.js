@@ -88,3 +88,32 @@ export async function loadActiveProjects() {
   }
   return active;
 }
+
+export async function loadWaitingProjects() {
+  await mkdir(projectsDir, { recursive: true });
+  const files = await readdir(projectsDir);
+  const ids = files
+    .filter(f => f.endsWith('.json') && !f.endsWith('.backup.json'))
+    .map(f => f.replace('.json', ''));
+
+  const waiting = [];
+  for (const id of ids) {
+    try {
+      const state = await loadProject(id);
+      if (state.status === 'waiting_input') waiting.push(id);
+    } catch (err) {
+      log.warn(`Skipping project ${id}: ${err.message}`);
+    }
+  }
+  return waiting;
+}
+
+export async function resumeProject(projectId, gregDirection) {
+  const state = await loadProject(projectId);
+  state.status = 'active';
+  state.gregDirection = gregDirection;  // Grok will use this as context
+  state.lastActivity = new Date().toISOString();
+  await saveProject(state);
+  log.info(`Project ${projectId} resumed with Greg's direction`);
+  return state;
+}

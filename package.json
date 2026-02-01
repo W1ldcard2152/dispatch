@@ -11,13 +11,16 @@
     "project:add": "node scripts/setup.js --add-project",
     "project:status": "node scripts/setup.js --status",
     "project:pause": "node scripts/setup.js --pause",
-    "project:resume": "node scripts/setup.js --resume"
+    "project:resume": "node scripts/setup.js --resume",
+    "admin": "node src/admin/server.js"
   },
   "engines": {
     "node": ">=22.0.0"
   },
   "dependencies": {
+    "@slack/bolt": "^4.6.0",
     "dotenv": "^16.4.7",
+    "express": "^5.2.1",
     "node-cron": "^3.0.3",
     "openai": "^4.77.0",
     "simple-git": "^3.27.0"
